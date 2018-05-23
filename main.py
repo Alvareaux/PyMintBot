@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-
+import telebot
 import json
 import logging
 import sys
 import datetime
+import pytz
+from copy import copy
+from telebot import types
 from time import time, asctime, sleep
 from os.path import exists
-from copy import copy
-
-import pytz
-import telebot
-from telebot import types
 from telebot.apihelper import ApiException
 
 __version__ = 0.8
@@ -163,12 +161,14 @@ bot.set_update_listener(listener)
 about_message = '''
 Триггербот %s
 Триггербот ебал вас в рот, мятка стронг
+
+Для отзывов – @MintMushroomBot
 ''' % __version__
 
 help_message = '''Команды:
     Добавить триггеры:
         /add(context) <триггер> % <ответ>
-        /add(context) <триггер> как ответ на сообщение        
+        /add(context) <триггер> как ответ на сообщение
     Удалить триггеры:
         /del(context) <триггер>
         /del(context) <триггер> как ответ на сообщение
@@ -192,7 +192,7 @@ admin_help_message = '''Команды:
     Размер списка:
         /size
     Списки:
-        /all        
+        /all
 Команды админа:
     Транслировать сообщение:
         /b <Сообщение>
@@ -254,24 +254,24 @@ changelog = '''
     Исправление работы команд
     Исправление опечаток
     Исправление работы статистики
-    Исправление работы с большим количеством бесед    
+    Исправление работы с большим количеством бесед
 0.4:
     Добавлена проверка статуса сообщения
     ---
     Исправление логгирования
 0.5:
     Добавлены контекст-триггеры
-0.6: 
+0.6:
     Все что можно переведено на инлайн-кнопки
     ---
     Исравление контекст-триггеров
 0.7:
     Контекстные триггеры может добавлять только админ
-0.8: 
+0.8:
     Полная переработка админки
     Увеличено количество инлайн-кнопок и уменьшено количество спама
     ---
-    Фиксы админки    
+    Фиксы админки
 '''
 
 
@@ -411,8 +411,8 @@ def callback_inline(call):
                 msg_text = '''
 Original trigger count : {}
 Final trigger count : {}
-        
-Что-то еще?        
+
+Что-то еще?
                 '''.format(
                     total_triggers,
                     final_triggers)
@@ -988,7 +988,7 @@ def check_message(m):
 От пользователя : {}
 ID пользователя : {}
 Бот: {}
-    
+
 Дата : {}
                     '''.format(
                 from_user,
@@ -1006,8 +1006,8 @@ ID пользователя : {}
 ID сообщения : {}
 ID пользователя : {}
 Юзернейм : {}
-    
-Дата : {}    
+
+Дата : {}
                             '''.format(
                 message_id,
                 from_user,
@@ -1077,24 +1077,24 @@ def response(m):
                         else:
                             bot.send_message(m.chat.id, trg[t])
             if ctx:
-                for t in ctx.keys():
-                    if t in m.text.lower() :
-                        if ' sti' in ctx[t]:
-                            bot.send_sticker(m.chat.id, (ctx[t])[:-4])
-                        elif ' pho' in ctx[t]:
-                            bot.send_photo(m.chat.id, (ctx[t])[:-4])
-                        elif ' vid' in ctx[t]:
-                            bot.send_video(m.chat.id, (ctx[t])[:-4])
-                        elif ' voi' in ctx[t]:
-                            bot.send_voice(m.chat.id, (ctx[t])[:-4])
-                        elif ' aud' in ctx[t]:
-                            bot.send_audio(m.chat.id, (ctx[t])[:-4])
-                        elif ' doc' in ctx[t]:
-                            bot.send_document(m.chat.id, (ctx[t])[:-4])
-                        elif ' vnt' in ctx[t]:
-                            bot.send_video_note(m.chat.id, (ctx[t])[:-4])
+                for c in ctx.keys():
+                    if c in m.text.lower():
+                        if ' sti' in ctx[c]:
+                            bot.send_sticker(m.chat.id, (ctx[c])[:-4])
+                        elif ' pho' in ctx[c]:
+                            bot.send_photo(m.chat.id, (ctx[c])[:-4])
+                        elif ' vid' in ctx[c]:
+                            bot.send_video(m.chat.id, (ctx[c])[:-4])
+                        elif ' voi' in ctx[c]:
+                            bot.send_voice(m.chat.id, (ctx[c])[:-4])
+                        elif ' aud' in ctx[c]:
+                            bot.send_audio(m.chat.id, (ctx[c])[:-4])
+                        elif ' doc' in ctx[c]:
+                            bot.send_document(m.chat.id, (ctx[c])[:-4])
+                        elif ' vnt' in ctx[c]:
+                            bot.send_video_note(m.chat.id, (ctx[c])[:-4])
                         else:
-                            bot.send_message(m.chat.id, ctx[t])
+                            bot.send_message(m.chat.id, ctx[c])
 
 
 def safepolling(bot):
