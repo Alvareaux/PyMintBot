@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-import telebot
+
 import json
 import logging
 import sys
 import datetime
-import pytz
-from copy import copy
-from telebot import types
 from time import time, asctime, sleep
 from os.path import exists
+from copy import copy
+
+from config import *
+import pytz
+import telebot
+from telebot import types
 from telebot.apihelper import ApiException
 
-__version__ = 0.8
-
-owner = 65706097
 triggers = {}
 admins = {}
-separator = '%'
-tz = pytz.timezone('Europe/Kiev')
+
+tz = pytz.timezone(tz_name)
 
 
 # Логгер
@@ -57,7 +57,6 @@ else:
     with open('triggers.json', 'w') as f1:
         json.dump({}, f1)
 
-
 if exists('context.json'):
     with open('context.json') as fc:
         context = json.load(fc)
@@ -65,7 +64,6 @@ if exists('context.json'):
 else:
     with open('context.json', 'w') as fc:
         json.dump({}, fc)
-
 
 if exists('admins.json'):
     with open('admins.json') as f2:
@@ -143,7 +141,6 @@ else:
         f.write(token)
     print('Файл с токенами сохранен')
 
-
 bot = telebot.TeleBot(token)
 
 bot_id = int(token.split(':')[0])
@@ -157,125 +154,11 @@ def listener(messages):
 
 bot.set_update_listener(listener)
 
-# Системные сообщения
-about_message = '''
-Триггербот %s
-Триггербот ебал вас в рот, мятка стронг
 
-Для отзывов – @MintMushroomBot
-''' % __version__
-
-help_message = '''Команды:
-    Добавить триггеры:
-        /add(context) <триггер> % <ответ>
-        /add(context) <триггер> как ответ на сообщение
-    Удалить триггеры:
-        /del(context) <триггер>
-        /del(context) <триггер> как ответ на сообщение
-    Информация о сообщении:
-        /status
-    Размер списка:
-        /size
-    Списки:
-        /all
-'''
-
-admin_help_message = '''Команды:
-    Добавить триггеры:
-        /add(context) <триггер> % <ответ>
-        /add(context) <триггер> как ответ на сообщение
-    Удалить триггеры:
-        /del(context) <триггер>
-        /del(context) <триггер> как ответ на сообщение
-    Информация о сообщении:
-        /status
-    Размер списка:
-        /size
-    Списки:
-        /all
-Команды админа:
-    Транслировать сообщение:
-        /b <Сообщение>
-    Добавить глобальные триггеры:
-        /gadd <триггер> % <ответ>
-        /gadd <триггер> как ответ на сообщение
-    Удалить глобальные триггеры:
-        /gdel <триггер>
-        /gdel <триггер> как ответ на сообщение
-    Добавить админа:
-        /add_admin <ID>
-        /add_admin как ответ на сообщение
-    Удалить админа:
-        /del_admin <ID>
-        /del_admin как ответ на сообщение
-    Найти триггер:
-        /gsearch <триггер>
-'''
-
-trigger_created_message = '''
-Триггер создан:
-Триггер [{}]
-Ответ [{}]
-'''
-
-context_trigger_created_message = '''
-Контекст-триггер создан:
-Триггер [{}]
-Ответ [{}]
-'''
-
-global_trigger_created_message = '''
-Глобальный триггер создан:
-Триггер [{}]
-Ответ [{}]
-'''
-
-global_trigger_deleted_message = '''
-Триггер [{}] удален из {}
-'''
-
-invited_message = '''
-Привет, я триггербот мятки.
-Для списка команд введите /help
-'''
-
-changelog = '''
-0.1:
-    ...
-0.2:
-    Триггеры для медиа
-    ---
-    Исправление работы команд
-    Исправление работы с исключениями
-0.3:
-    Были добавлены админы и все что с ними связано
-    Добавлено логгирование
-    ---
-    Исправление работы команд
-    Исправление опечаток
-    Исправление работы статистики
-    Исправление работы с большим количеством бесед
-0.4:
-    Добавлена проверка статуса сообщения
-    ---
-    Исправление логгирования
-0.5:
-    Добавлены контекст-триггеры
-0.6:
-    Все что можно переведено на инлайн-кнопки
-    ---
-    Исравление контекст-триггеров
-0.7:
-    Контекстные триггеры может добавлять только админ
-0.8:
-    Полная переработка админки
-    Увеличено количество инлайн-кнопок и уменьшено количество спама
-    ---
-    Фиксы админки
-'''
-
-
+# Системные сообщения находятся в файле config.py
 # Инфо команды
+
+
 @bot.message_handler(commands=['help', 'start'])
 def bot_help(m):
     bot.send_message(m.chat.id, help_message, True, parse_mode="Markdown")
@@ -412,7 +295,7 @@ def callback_inline(call):
 Original trigger count : {}
 Final trigger count : {}
 
-Что-то еще?
+Что-то еще?        
                 '''.format(
                     total_triggers,
                     final_triggers)
@@ -786,9 +669,9 @@ def solve(m):
         rw = rp.text
     if m.chat.type in ['group', 'supergroup']:
         trg = get_triggers(m.chat.id)
-        if trg :
+        if trg:
             for x in trg.keys():
-                if trg[x].lower() == rw.lower() :
+                if trg[x].lower() == rw.lower():
                     ts = 'Триггер = ' + x
         bot.reply_to(m, ts)
 
@@ -813,7 +696,7 @@ def broadcast(m):
 @bot.message_handler(commands=['gadd'])
 def add_global_trigger(m):
     if m.from_user.id == owner:
-        if len(m.text.split()) == 1 :
+        if len(m.text.split()) == 1:
             bot.reply_to(m, 'Использоване:\n/gadd <триггер> % <ответ>\n[Ответ на сообщение]:\n/gadd <триггер>')
             return
         if m.reply_to_message:
@@ -918,26 +801,26 @@ def merge_triggers(m):
 @bot.message_handler(commands=['add_admin'])
 def add_admin(m):
     if m.from_user.id == owner:
-            if m.reply_to_message:
-                if m.reply_to_message.text:
-                    admin_id = m.reply_to_message.from_user.id
-                    admin_name = m.reply_to_message.from_user.username
-                else:
-                    bot.reply_to(m, 'ЧТО ТЫ ТАКОЕ?')
-                    return
+        if m.reply_to_message:
+            if m.reply_to_message.text:
+                admin_id = m.reply_to_message.from_user.id
+                admin_name = m.reply_to_message.from_user.username
             else:
-                if len(m.text.split()) == 1:
-                    bot.reply_to(m, 'Использование: /add_admin <userid> % <username>')
-                else:
-                    rest_text = m.text.split(' ', 1)[1]
-                    admin_id = rest_text.split(separator)[0].strip().lower()
-                    admin_name = rest_text.split(separator, 1)[1].strip()
-            if get_admins(m.chat.id):
-                get_admins(m.chat.id)[admin_id] = str(admin_name)
+                bot.reply_to(m, 'ЧТО ТЫ ТАКОЕ?')
+                return
+        else:
+            if len(m.text.split()) == 1:
+                bot.reply_to(m, 'Использование: /add_admin <userid> % <username>')
             else:
-                admins[str(m.chat.id)] = {admin_id: str(admin_name)}
-            bot.reply_to(m, 'Админ добавлен')
-            save_admins()
+                rest_text = m.text.split(' ', 1)[1]
+                admin_id = rest_text.split(separator)[0].strip().lower()
+                admin_name = rest_text.split(separator, 1)[1].strip()
+        if get_admins(m.chat.id):
+            get_admins(m.chat.id)[admin_id] = str(admin_name)
+        else:
+            admins[str(m.chat.id)] = {admin_id: str(admin_name)}
+        bot.reply_to(m, 'Админ добавлен')
+        save_admins()
 
 
 @bot.message_handler(commands=['del_admin'])
@@ -982,7 +865,8 @@ def check_message(m):
             from_user = m.reply_to_message.forward_from.id
             username = m.reply_to_message.forward_from.username
             is_bot = m.reply_to_message.forward_from.is_bot
-            date = datetime.datetime.fromtimestamp(m.reply_to_message.forward_date, tz).strftime("%A, %B %d, %Y %H:%M:%S")
+            date = datetime.datetime.fromtimestamp(m.reply_to_message.forward_date, tz).strftime("%A, %B %d, "
+                                                                                                 "%Y %H:%M:%S")
 
             msg_text = '''
 От пользователя : {}
@@ -1007,7 +891,7 @@ ID сообщения : {}
 ID пользователя : {}
 Юзернейм : {}
 
-Дата : {}
+Дата : {}    
                             '''.format(
                 message_id,
                 from_user,
@@ -1055,46 +939,46 @@ def response(m):
     if not is_recent(m):
         return
     if m.chat.type in ['group', 'supergroup']:
-            trg = get_triggers(m.chat.id)
-            ctx = get_context(m.chat.id)
-            if trg:
-                for t in trg.keys():
-                    if t == m.text.lower():
-                        if ' sti' in trg[t]:
-                            bot.send_sticker(m.chat.id, (trg[t])[:-4])
-                        elif ' pho' in trg[t]:
-                            bot.send_photo(m.chat.id, (trg[t])[:-4])
-                        elif ' vid' in trg[t]:
-                            bot.send_video(m.chat.id, (trg[t])[:-4])
-                        elif ' voi' in trg[t]:
-                            bot.send_voice(m.chat.id, (trg[t])[:-4])
-                        elif ' aud' in trg[t]:
-                            bot.send_audio(m.chat.id, (trg[t])[:-4])
-                        elif ' doc' in trg[t]:
-                            bot.send_document(m.chat.id, (trg[t])[:-4])
-                        elif ' vnt' in trg[t]:
-                            bot.send_video_note(m.chat.id, (trg[t])[:-4])
-                        else:
-                            bot.send_message(m.chat.id, trg[t])
-            if ctx:
-                for c in ctx.keys():
-                    if c in m.text.lower():
-                        if ' sti' in ctx[c]:
-                            bot.send_sticker(m.chat.id, (ctx[c])[:-4])
-                        elif ' pho' in ctx[c]:
-                            bot.send_photo(m.chat.id, (ctx[c])[:-4])
-                        elif ' vid' in ctx[c]:
-                            bot.send_video(m.chat.id, (ctx[c])[:-4])
-                        elif ' voi' in ctx[c]:
-                            bot.send_voice(m.chat.id, (ctx[c])[:-4])
-                        elif ' aud' in ctx[c]:
-                            bot.send_audio(m.chat.id, (ctx[c])[:-4])
-                        elif ' doc' in ctx[c]:
-                            bot.send_document(m.chat.id, (ctx[c])[:-4])
-                        elif ' vnt' in ctx[c]:
-                            bot.send_video_note(m.chat.id, (ctx[c])[:-4])
-                        else:
-                            bot.send_message(m.chat.id, ctx[c])
+        trg = get_triggers(m.chat.id)
+        ctx = get_context(m.chat.id)
+        if trg:
+            for t in trg.keys():
+                if t == m.text.lower():
+                    if ' sti' in trg[t]:
+                        bot.send_sticker(m.chat.id, (trg[t])[:-4])
+                    elif ' pho' in trg[t]:
+                        bot.send_photo(m.chat.id, (trg[t])[:-4])
+                    elif ' vid' in trg[t]:
+                        bot.send_video(m.chat.id, (trg[t])[:-4])
+                    elif ' voi' in trg[t]:
+                        bot.send_voice(m.chat.id, (trg[t])[:-4])
+                    elif ' aud' in trg[t]:
+                        bot.send_audio(m.chat.id, (trg[t])[:-4])
+                    elif ' doc' in trg[t]:
+                        bot.send_document(m.chat.id, (trg[t])[:-4])
+                    elif ' vnt' in trg[t]:
+                        bot.send_video_note(m.chat.id, (trg[t])[:-4])
+                    else:
+                        bot.send_message(m.chat.id, trg[t])
+        if ctx:
+            for t in ctx.keys():
+                if t in m.text.lower():
+                    if ' sti' in ctx[t]:
+                        bot.send_sticker(m.chat.id, (ctx[t])[:-4])
+                    elif ' pho' in ctx[t]:
+                        bot.send_photo(m.chat.id, (ctx[t])[:-4])
+                    elif ' vid' in ctx[t]:
+                        bot.send_video(m.chat.id, (ctx[t])[:-4])
+                    elif ' voi' in ctx[t]:
+                        bot.send_voice(m.chat.id, (ctx[t])[:-4])
+                    elif ' aud' in ctx[t]:
+                        bot.send_audio(m.chat.id, (ctx[t])[:-4])
+                    elif ' doc' in ctx[t]:
+                        bot.send_document(m.chat.id, (ctx[t])[:-4])
+                    elif ' vnt' in ctx[t]:
+                        bot.send_video_note(m.chat.id, (ctx[t])[:-4])
+                    else:
+                        bot.send_message(m.chat.id, ctx[t])
 
 
 def safepolling(bot):
@@ -1113,7 +997,7 @@ def safepolling(bot):
         except Exception as e:
             print('Exception at %s \n%s' % (asctime(), e))
             now = int(time())
-            while(1):
+            while 1:
                 error_text = 'Exception at %s:\n%s' % (asctime(), str(e) if len(str(e)) < 3600 else str(e)[:3600])
                 try:
                     offline = int(time()) - now
